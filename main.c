@@ -6,6 +6,8 @@ int main() {
 
     // Código principal
 
+    //prueba
+
     // Finalización del programa
     return 0;
 }
