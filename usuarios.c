@@ -6,10 +6,11 @@
 #define MAX_LINEA 256
 
 typedef struct {
+    int id;
     char nombre[50];
     char correo[50];
     char contrasena[50];
-} usuario;
+} Usuario;
 
 // Validar si el correo existe en el archivo usuarios.txt
 int validarCorreoExistente(const char *correo) {
@@ -33,7 +34,7 @@ int validarCorreoExistente(const char *correo) {
 
 // Crear un nuevo usuario y agregarlo al archivo
 void crearUsuario() {
-    usuario nuevoUsuario;
+    Usuario nuevoUsuario;
     printf("Nombre: ");
     scanf("%49s", nuevoUsuario.nombre);
     printf("Correo: ");

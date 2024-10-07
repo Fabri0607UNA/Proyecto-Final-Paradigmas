@@ -3,6 +3,10 @@
 
 typedef struct {
     int id;
+    char remitente[50];
+    char destinatario[50];
+    char mensaje[256];
+    char estado[10];
 } Correo;
 
 void enviarCorreo(const char *remitente);
