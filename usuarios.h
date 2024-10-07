@@ -2,6 +2,7 @@
 #define USUARIOS_H
 
 typedef struct {
+    int id;
     char nombre[50];
     char correo[50];
     char contrasena[50];
