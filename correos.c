@@ -23,7 +23,7 @@ int validarDestinatario(const char *destinatario) {
     char linea[MAX_LINEA];
     while (fgets(linea, sizeof(linea), archivo)) {
         Usuario usuario;
-        sscanf(linea, "%49[^,],%49[^,],%49[^\n]", usuario.nombre, usuario.correo, usuario.contrasena);
+        sscanf(linea, "%49[^|]|%49[^|]|%49[^\n]", usuario.nombre, usuario.correo, usuario.contrasena);
         if (strcmp(usuario.correo, destinatario) == 0) {
             fclose(archivo);
             return 1; // El destinatario existe
@@ -57,7 +57,7 @@ void enviarCorreo(const char *remitente) {
         printf("No se pudo abrir el archivo para escribir.\n");
         return;
     }
-    fprintf(archivo, "%s,%s,%s,%s\n", nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
+    fprintf(archivo, "%s|%s|%s|%s\n", nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
     fclose(archivo);
     printf("Correo enviado exitosamente.\n");
 }
@@ -92,7 +92,7 @@ void listarCorreosNoLeidos(const char *usuario) {
     printf("Correos no leídos de %s:\n", usuario);
     while (fgets(linea, sizeof(linea), archivo)) {
         char remitente[50], destinatario[50], mensaje[256], estado[10];
-        sscanf(linea, "%49[^,],%49[^,],%255[^,],%9[^\n]", remitente, destinatario, mensaje, estado);
+        sscanf(linea, "%49[^|]|%49[^|]|%255[^|]|%9[^\n]", remitente, destinatario, mensaje, estado);
         if (strcmp(destinatario, usuario) == 0 && strcmp(estado, "no leido") == 0) {
             printf("De: %s | Mensaje: %s\n", remitente, mensaje);
         }
@@ -115,7 +115,7 @@ void eliminarCorreo(const char *usuario) {
     scanf("%s", correoAEliminar);
 
     while (fgets(linea, sizeof(linea), archivo)) {
-        sscanf(linea, "%49[^,],%49[^,],%255[^,],%9[^\n]", remitente, destinatario, mensaje, estado);
+        sscanf(linea, "%49[^|]|%49[^|]|%255[^|]|%9[^\n]", remitente, destinatario, mensaje, estado);
         if (!(strcmp(destinatario, usuario) == 0 && strcmp(remitente, correoAEliminar) == 0)) {
             fprintf(tempArchivo, "%s", linea); // Copiar todo excepto el correo a eliminar
         }
@@ -146,7 +146,7 @@ void responderCorreo(const char *usuario) {
     int i = 1;
     while (fgets(linea, sizeof(linea), archivo)) {
         if (i == correoId) {
-            sscanf(linea, "%49[^,],%49[^,],%255[^,],%9[^\n]", remitente, destinatario, mensaje, estado);
+            sscanf(linea, "%49[^|]|%49[^|]|%255[^|]|%9[^\n]", remitente, destinatario, mensaje, estado);
             break;
         }
         i++;
@@ -169,7 +169,7 @@ void responderCorreo(const char *usuario) {
             printf("No se pudo abrir el archivo para escribir.\n");
             return;
         }
-        fprintf(archivoRespuesta, "%s,%s,%s,%s\n", respuesta.remitente, respuesta.destinatario, respuesta.mensaje, respuesta.estado);
+        fprintf(archivoRespuesta, "%s|%s|%s|%s\n", respuesta.remitente, respuesta.destinatario, respuesta.mensaje, respuesta.estado);
         fclose(archivoRespuesta);
 
         printf("Respuesta enviada exitosamente.\n");

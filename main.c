@@ -91,7 +91,7 @@ int iniciarSesion(char *correo, char *contrasena) {
     char linea[MAX_LINEA];
     Usuario usuario;
     while (fgets(linea, sizeof(linea), archivo)) {
-        sscanf(linea, "%49[^,],%49[^,],%49[^\n]", usuario.nombre, usuario.correo, usuario.contrasena);
+        sscanf(linea, "%49[^|]|%49[^|]|%49[^\n]", usuario.nombre, usuario.correo, usuario.contrasena);
         if (strcmp(usuario.correo, correo) == 0 && strcmp(usuario.contrasena, contrasena) == 0) {
             fclose(archivo);
             return 1; // Inicio de sesión exitoso

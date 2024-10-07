@@ -21,7 +21,7 @@ int validarCorreoExistente(const char *correo) {
     char linea[MAX_LINEA];
     while (fgets(linea, sizeof(linea), archivo)) {
         Usuario usuario;
-        sscanf(linea, "%49[^,],%49[^,],%49[^\n]", usuario.nombre, usuario.correo, usuario.contrasena);
+        sscanf(linea, "%49[^|]|%49[^|]|%49[^\n]", usuario.nombre, usuario.correo, usuario.contrasena);
         if (strcmp(usuario.correo, correo) == 0) {
             fclose(archivo);
             return 1; // El correo ya existe
@@ -33,11 +33,11 @@ int validarCorreoExistente(const char *correo) {
 
 // Crear un nuevo usuario y agregarlo al archivo
 void crearUsuario() {
-    Usuario nuevoUsuario;
+    usuario nuevoUsuario;
     printf("Nombre: ");
-    scanf("%s", nuevoUsuario.nombre);
+    scanf("%49s", nuevoUsuario.nombre);
     printf("Correo: ");
-    scanf("%s", nuevoUsuario.correo);
+    scanf("%49s", nuevoUsuario.correo);
 
     // Validar que el correo sea único
     if (validarCorreoExistente(nuevoUsuario.correo)) {
@@ -46,7 +46,7 @@ void crearUsuario() {
     }
 
     printf("Contraseña: ");
-    scanf("%s", nuevoUsuario.contrasena);
+    scanf("%49s", nuevoUsuario.contrasena);
 
     // Guardar el usuario en el archivo
     FILE *archivo = fopen("usuarios.txt", "a");
@@ -54,7 +54,7 @@ void crearUsuario() {
         printf("No se pudo abrir el archivo para escribir.\n");
         return;
     }
-    fprintf(archivo, "%s,%s,%s\n", nuevoUsuario.nombre, nuevoUsuario.correo, nuevoUsuario.contrasena);
+    fprintf(archivo, "%s|%s|%s\n", nuevoUsuario.nombre, nuevoUsuario.correo, nuevoUsuario.contrasena);
     fclose(archivo);
     printf("Usuario creado exitosamente.\n");
 }
