@@ -10,7 +10,7 @@ typedef struct {
     char nombre[50];
     char correo[50];
     char contrasena[50];
-} Usuario;
+} usuario;
 
 // Validar si el correo existe en el archivo usuarios.txt
 int validarCorreoExistente(const char *correo) {
@@ -34,7 +34,7 @@ int validarCorreoExistente(const char *correo) {
 
 // Crear un nuevo usuario y agregarlo al archivo
 void crearUsuario() {
-    Usuario nuevoUsuario;
+    usuario nuevoUsuario;
     printf("Nombre: ");
     scanf("%49s", nuevoUsuario.nombre);
     printf("Correo: ");
