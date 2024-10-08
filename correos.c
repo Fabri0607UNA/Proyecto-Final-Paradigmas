@@ -77,7 +77,7 @@ void listarCorreos(const char *usuario) {
     printf("Correos de %s:\n", usuario);
     while (fgets(linea, sizeof(linea), archivo)) {
         char remitente[50], destinatario[50], mensaje[256], estado[10];
-        sscanf(linea, "%49[^,],%49[^,],%255[^,],%9[^\n]", remitente, destinatario, mensaje, estado);
+        sscanf(linea, "%49[^|]|%49[^|]|%255[^|]|%9[^\n]", remitente, destinatario, mensaje, estado);
         if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
             printf("De: %s | Para: %s | Mensaje: %s | Estado: %s\n", remitente, destinatario, mensaje, estado);
             if (strcmp(estado, "no leido") == 0) {
