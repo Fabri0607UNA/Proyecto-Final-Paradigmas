@@ -74,23 +74,31 @@ void listarCorreos(const char *usuario) {
         return;
     }
     char linea[MAX_LINEA];
-    long posicion;
     
     printf("Correos de %s:\n", usuario);
     while (fgets(linea, sizeof(linea), archivo)) {
+        int id;
         char remitente[50], destinatario[50], mensaje[256], estado[10];
-        sscanf(linea, "%49[^|]|%49[^|]|%255[^|]|%9[^\n]", remitente, destinatario, mensaje, estado);
+        long posicion = ftell(archivo);  // Guarda la posición actual
+
+        // Analiza la línea con sscanf, incluyendo el id al principio
+        sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+
         if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
-            printf("De: %s | Para: %s | Mensaje: %s | Estado: %s\n", remitente, destinatario, mensaje, estado);
+            printf("ID: %d | De: %s | Para: %s | Mensaje: %s | Estado: %s\n", id, remitente, destinatario, mensaje, estado);
+
+            // Si el estado es "no leido", cambiarlo a "leido"
             if (strcmp(estado, "no leido") == 0) {
-                fseek(archivo, posicion - strlen(estado), SEEK_SET);  // Regresa a la posición del estado
-                fprintf(archivo, "leido");  // Actualiza el estado a "leído"
-                fseek(archivo, 0, SEEK_CUR);  // Vuelve a la posición correcta
+                // Calcular la posición del estado en la línea actual
+                fseek(archivo, posicion - strlen(linea) + strlen(linea) - strlen(estado) - 1, SEEK_SET);  // Mover el puntero al inicio del estado
+                fprintf(archivo, "leido");  // Sobrescribir el estado con "leido"
+                fflush(archivo);  // Asegurarse de que los cambios se escriban en el archivo
             }
         }
     }
     fclose(archivo);
 }
+
 
 
 // Listar los correos no leídos de un usuario
