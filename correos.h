@@ -11,7 +11,6 @@ typedef struct {
 
 int contadorCorreos = 0;  // Global
 
-
 void enviarCorreo(const char *remitente);
 void listarCorreos(const char *usuario);
 void listarCorreosNoLeidos(const char *usuario);

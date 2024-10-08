@@ -90,7 +90,6 @@ void listarCorreos(const char *usuario) {
     fclose(archivo);
 }
 
-
 // Listar los correos no leídos de un usuario
 void listarCorreosNoLeidos(const char *usuario) {
     FILE *archivo = fopen("correos.txt", "r");
