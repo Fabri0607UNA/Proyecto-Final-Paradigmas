@@ -7,6 +7,7 @@
 #define MAX_LINEA 256
 
 typedef struct {
+    int id;
     char remitente[50];
     char destinatario[50];
     char mensaje[256];
@@ -57,29 +58,38 @@ void enviarCorreo(const char *remitente) {
         printf("No se pudo abrir el archivo para escribir.\n");
         return;
     }
-    fprintf(archivo, "%s|%s|%s|%s\n", nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
+    nuevoCorreo.id = ++contadorCorreos;  // Asigna un ID único
+    fprintf(archivo, "%d|%s|%s|%s|%s\n", nuevoCorreo.id, nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
     fclose(archivo);
     printf("Correo enviado exitosamente.\n");
 }
 
 // Listar los correos de un usuario específico
 void listarCorreos(const char *usuario) {
-    FILE *archivo = fopen("correos.txt", "r");
+    FILE *archivo = fopen("correos.txt", "r+");  // Abrir en modo lectura y escritura
     if (!archivo) {
         printf("No se pudo abrir el archivo de correos.\n");
         return;
     }
     char linea[MAX_LINEA];
+    long posicion;
+    
     printf("Correos de %s:\n", usuario);
     while (fgets(linea, sizeof(linea), archivo)) {
         char remitente[50], destinatario[50], mensaje[256], estado[10];
-        sscanf(linea, "%49[^|]|%49[^|]|%255[^|]|%9[^\n]", remitente, destinatario, mensaje, estado);
+        sscanf(linea, "%49[^,],%49[^,],%255[^,],%9[^\n]", remitente, destinatario, mensaje, estado);
         if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
             printf("De: %s | Para: %s | Mensaje: %s | Estado: %s\n", remitente, destinatario, mensaje, estado);
+            if (strcmp(estado, "no leido") == 0) {
+                fseek(archivo, posicion - strlen(estado), SEEK_SET);  // Regresa a la posición del estado
+                fprintf(archivo, "leido");  // Actualiza el estado a "leído"
+                fseek(archivo, 0, SEEK_CUR);  // Vuelve a la posición correcta
+            }
         }
     }
     fclose(archivo);
 }
+
 
 // Listar los correos no leídos de un usuario
 void listarCorreosNoLeidos(const char *usuario) {
