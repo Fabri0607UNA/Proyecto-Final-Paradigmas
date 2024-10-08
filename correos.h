@@ -9,7 +9,8 @@ typedef struct {
     char estado[10];
 } Correo;
 
-int contadorCorreos = 0;  // Global
+extern int contadorCorreos;
+
 
 void enviarCorreo(const char *remitente);
 void listarCorreos(const char *usuario);

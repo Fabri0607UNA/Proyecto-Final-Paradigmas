@@ -6,6 +6,8 @@
 #define MAX_CORREOS 100
 #define MAX_LINEA 256
 
+int contadorCorreos = 0;
+
 typedef struct {
     int id;
     char remitente[50];
@@ -89,6 +91,7 @@ void listarCorreos(const char *usuario) {
     }
     fclose(archivo);
 }
+
 
 // Listar los correos no leídos de un usuario
 void listarCorreosNoLeidos(const char *usuario) {
