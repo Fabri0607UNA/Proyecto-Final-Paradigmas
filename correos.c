@@ -36,10 +36,10 @@ int validarDestinatario(const char *destinatario) {
     return 0; // El destinatario no existe
 }
 
-// Enviar un nuevo correo
 void enviarCorreo(const char *remitente) {
-    Correo nuevoCorreo;
+    correo nuevoCorreo;
     strcpy(nuevoCorreo.remitente, remitente);
+    
     printf("Destinatario: ");
     scanf("%s", nuevoCorreo.destinatario);
 
@@ -50,9 +50,16 @@ void enviarCorreo(const char *remitente) {
     }
 
     printf("Mensaje: ");
-    getchar(); // Para capturar el \n
+    getchar();  // Capturar el \n sobrante del scanf
     fgets(nuevoCorreo.mensaje, sizeof(nuevoCorreo.mensaje), stdin);
-    strcpy(nuevoCorreo.estado, "no leido");
+
+    // Eliminar el carácter de nueva línea (\n) al final del mensaje si existe
+    size_t len = strlen(nuevoCorreo.mensaje);
+    if (len > 0 && nuevoCorreo.mensaje[len - 1] == '\n') {
+        nuevoCorreo.mensaje[len - 1] = '\0';  // Reemplazar \n con \0
+    }
+
+    strcpy(nuevoCorreo.estado, "pendiente");
 
     // Guardar el correo en el archivo
     FILE *archivo = fopen("correos.txt", "a");
@@ -60,11 +67,14 @@ void enviarCorreo(const char *remitente) {
         printf("No se pudo abrir el archivo para escribir.\n");
         return;
     }
+
     nuevoCorreo.id = ++contadorCorreos;  // Asigna un ID único
     fprintf(archivo, "%d|%s|%s|%s|%s\n", nuevoCorreo.id, nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
     fclose(archivo);
+
     printf("Correo enviado exitosamente.\n");
 }
+
 
 // Listar los correos de un usuario específico
 void listarCorreos(const char *usuario) {
@@ -101,64 +111,101 @@ void listarCorreos(const char *usuario) {
 
 
 
-// Listar los correos no leídos de un usuario
+// Función para listar los correos no leídos de un usuario y actualizarlos como "leído"
 void listarCorreosNoLeidos(const char *usuario) {
     FILE *archivo = fopen("correos.txt", "r");
-    if (!archivo) {
+    FILE *tempArchivo = fopen("temp.txt", "w+");  // Archivo temporal para actualizar los estados
+
+    if (!archivo || !tempArchivo) {
         printf("No se pudo abrir el archivo de correos.\n");
         return;
     }
+
     char linea[MAX_LINEA];
+    int id;
+    char remitente[50], destinatario[50], mensaje[256], estado[10];
+    int correosNoLeidos = 0;  // Contador de correos no leídos
+
     printf("Correos no leídos de %s:\n", usuario);
+
+    // Leer línea por línea y actualizar los estados de los correos no leídos
     while (fgets(linea, sizeof(linea), archivo)) {
-        int id;
-        char remitente[50], destinatario[50], mensaje[256], estado[10];
-        
-        // Leer el id y los otros campos
         sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
 
-        // Filtrar por destinatario y estado "no leido"
-        if (strcmp(destinatario, usuario) == 0 && strcmp(estado, "no leido") == 0) {
+        // Verificar si el correo es para el usuario y está en estado "no leido"
+        if (strcmp(destinatario, usuario) == 0 && strcmp(estado, "pendiente") == 0) {
             printf("ID: %d | De: %s | Mensaje: %s\n", id, remitente, mensaje);
+            strcpy(estado, "leido");  // Actualizar el estado a "leido"
+            correosNoLeidos++;
         }
+
+        // Escribir en el archivo temporal, con el estado actualizado si es necesario
+        fprintf(tempArchivo, "%d|%s|%s|%s|%s\n", id, remitente, destinatario, mensaje, estado);
     }
+
     fclose(archivo);
+    fclose(tempArchivo);
+
+    // Reemplazar el archivo original con el archivo temporal actualizado
+    remove("correos.txt");
+    rename("temp.txt", "correos.txt");
+
+    if (correosNoLeidos == 0) {
+        printf("No tiene correos no leídos.\n");
+    } else {
+        printf("Se actualizaron %d correos a estado 'leído'.\n", correosNoLeidos);
+    }
 }
 
 
-// Eliminar un correo
+// Función para eliminar un correo específico
 void eliminarCorreo(const char *usuario) {
     FILE *archivo = fopen("correos.txt", "r");
     FILE *tempArchivo = fopen("temp.txt", "w");
+    
     if (!archivo || !tempArchivo) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+
     char linea[MAX_LINEA], destinatario[50], remitente[50], mensaje[256], estado[10];
     int id;
-    char correoAEliminar[50];
-    
-    printf("Ingrese el remitente del correo a eliminar: ");
-    scanf("%s", correoAEliminar);
+    int idAEliminar;
+
+    printf("Ingrese el ID del correo a eliminar: ");
+    scanf("%d", &idAEliminar);
+
+    int correoEncontrado = 0; // Bandera para verificar si se encontró el correo a eliminar
 
     // Leer línea por línea y verificar si corresponde al correo a eliminar
     while (fgets(linea, sizeof(linea), archivo)) {
         sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
-        
+
         // Copiar al archivo temporal solo si no coincide con el correo a eliminar
-        if (!(strcmp(destinatario, usuario) == 0 && strcmp(remitente, correoAEliminar) == 0)) {
+        // y el destinatario es el usuario actual
+        if (id != idAEliminar || strcmp(destinatario, usuario) != 0) {
             fprintf(tempArchivo, "%d|%s|%s|%s|%s\n", id, remitente, destinatario, mensaje, estado);
+        } else {
+            correoEncontrado = 1;  // Se encontró y se omitirá en el nuevo archivo
         }
     }
 
     fclose(archivo);
     fclose(tempArchivo);
-    remove("correos.txt");
-    rename("temp.txt", "correos.txt");
-    printf("Correo eliminado exitosamente.\n");
+
+    // Verificar si el correo se encontró y eliminó
+    if (correoEncontrado) {
+        remove("correos.txt");
+        rename("temp.txt", "correos.txt");
+        printf("Correo eliminado exitosamente.\n");
+    } else {
+        // Si no se encontró el correo, eliminar el archivo temporal
+        remove("temp.txt");
+        printf("No se encontró el correo con el ID proporcionado o no tiene permiso para eliminarlo.\n");
+    }
 }
 
-// Responder un correo
+// Función para responder a un correo
 void responderCorreo(const char *usuario) {
     FILE *archivo = fopen("correos.txt", "r");
     if (!archivo) {
@@ -187,10 +234,18 @@ void responderCorreo(const char *usuario) {
         Correo respuesta;
         strcpy(respuesta.remitente, usuario);
         strcpy(respuesta.destinatario, remitente);  // La respuesta va al remitente del correo original
+
         printf("Escriba su respuesta: ");
-        getchar();  // Para evitar problemas con el \n
+        getchar();  // Para evitar problemas con el \n sobrante
         fgets(respuesta.mensaje, sizeof(respuesta.mensaje), stdin);
-        strcpy(respuesta.estado, "no leido");
+
+        // Eliminar el carácter de nueva línea (\n) al final del mensaje si existe
+        size_t len = strlen(respuesta.mensaje);
+        if (len > 0 && respuesta.mensaje[len - 1] == '\n') {
+            respuesta.mensaje[len - 1] = '\0';  // Reemplazar \n con \0
+        }
+
+        strcpy(respuesta.estado, "pendiente");
 
         // Guardar la respuesta en el archivo
         FILE *archivoRespuesta = fopen("correos.txt", "a");
@@ -198,9 +253,10 @@ void responderCorreo(const char *usuario) {
             printf("No se pudo abrir el archivo para escribir.\n");
             return;
         }
-        // Se debe asignar un nuevo ID al correo
-        static int nuevoID = 1;  // O manejarlo de alguna otra forma si el ID es global
-        fprintf(archivoRespuesta, "%d|%s|%s|%s|%s\n", nuevoID++, respuesta.remitente, respuesta.destinatario, respuesta.mensaje, respuesta.estado);
+
+        // Asignar un nuevo ID al correo, incrementando el contador global
+        respuesta.id = ++contadorCorreos;
+        fprintf(archivoRespuesta, "%d|%s|%s|%s|%s\n", respuesta.id, respuesta.remitente, respuesta.destinatario, respuesta.mensaje, respuesta.estado);
         fclose(archivoRespuesta);
 
         printf("Respuesta enviada exitosamente.\n");

@@ -1,8 +1,2 @@
-1|nahum@gmail.com|fabricio@gmail.com|hola
-|
-1|nahum@gmail.com|fabricio@gmail.com|hola
-|
-1|nahum@gmail.com|fabricio@gmail.com|hola
-|
-1|nahum@gmail.com|fabricio@gmail.com|hola
-|
+1|fabricio@gmail.com|nahum@gmail.com|Hola|leido
+1|fabricio@gmail.com|ingold@gmail.com|Hola Ingold|leido
