@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "usuarios.h"
+#include <stdbool.h>
 
 #define MAX_USUARIOS 100
 #define MAX_LINEA 256
@@ -11,6 +12,10 @@ typedef struct {
     char correo[50];
     char contrasena[50];
 } usuario;
+
+bool contieneSimbolo1(const char *mensaje) {
+    return strchr(mensaje, '|') != NULL;
+}
 
 // Validar si el correo existe en el archivo usuarios.txt
 int validarCorreoExistente(const char *correo) {
@@ -35,10 +40,22 @@ int validarCorreoExistente(const char *correo) {
 // Crear un nuevo usuario y agregarlo al archivo
 void crearUsuario() {
     usuario nuevoUsuario;
+
+    // Pedir el nombre y validar que no contenga '|'
     printf("Nombre: ");
     scanf("%49s", nuevoUsuario.nombre);
+    if (contieneSimbolo1(nuevoUsuario.nombre)) {
+        printf("Error: El nombre no puede contener el símbolo '|'.\n");
+        return;
+    }
+
+    // Pedir el correo y validar que no contenga '|'
     printf("Correo: ");
     scanf("%49s", nuevoUsuario.correo);
+    if (contieneSimbolo1(nuevoUsuario.correo)) {
+        printf("Error: El correo no puede contener el símbolo '|'.\n");
+        return;
+    }
 
     // Validar que el correo sea único
     if (validarCorreoExistente(nuevoUsuario.correo)) {
@@ -46,8 +63,13 @@ void crearUsuario() {
         return;
     }
 
+    // Pedir la contraseña y validar que no contenga '|'
     printf("Contraseña: ");
     scanf("%49s", nuevoUsuario.contrasena);
+    if (contieneSimbolo1(nuevoUsuario.contrasena)) {
+        printf("Error: La contraseña no puede contener el símbolo '|'.\n");
+        return;
+    }
 
     // Guardar el usuario en el archivo
     FILE *archivo = fopen("usuarios.txt", "a");
@@ -55,7 +77,10 @@ void crearUsuario() {
         printf("No se pudo abrir el archivo para escribir.\n");
         return;
     }
+
+    // Escribir los datos del nuevo usuario en el archivo
     fprintf(archivo, "%s|%s|%s\n", nuevoUsuario.nombre, nuevoUsuario.correo, nuevoUsuario.contrasena);
     fclose(archivo);
+    
     printf("Usuario creado exitosamente.\n");
 }

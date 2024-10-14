@@ -2,6 +2,8 @@
 #include <string.h>
 #include "correos.h"
 #include "usuarios.h"
+#include <stdbool.h>
+
 
 #define MAX_CORREOS 100
 #define MAX_LINEA 256
@@ -15,6 +17,10 @@ typedef struct {
     char mensaje[256];
     char estado[10];
 } correo;
+
+bool contieneSimbolo(const char *mensaje) {
+    return strchr(mensaje, '|') != NULL;
+}
 
 // Validar si el destinatario existe en el archivo de usuarios
 int validarDestinatario(const char *destinatario) {
@@ -36,21 +42,31 @@ int validarDestinatario(const char *destinatario) {
     return 0; // El destinatario no existe
 }
 
-void enviarCorreo(const char *remitente) {
-    correo nuevoCorreo;
-    strcpy(nuevoCorreo.remitente, remitente);
+void enviarCorreo(const char *usuario) {
+    Correo nuevoCorreo;
     
-    printf("Destinatario: ");
+    // Verificar si el remitente es válido
+    strcpy(nuevoCorreo.remitente, usuario);
+
+    // Verificar si el remitente contiene el símbolo '|'
+    if (contieneSimbolo(nuevoCorreo.remitente)) {
+        printf("El remitente no puede contener el símbolo '|'.\n");
+        return;
+    }
+    
+    // Solicitar el destinatario
+    printf("Ingrese el destinatario: ");
     scanf("%s", nuevoCorreo.destinatario);
 
-    // Validar que el destinatario exista
-    if (!validarDestinatario(nuevoCorreo.destinatario)) {
-        printf("Error: El destinatario no existe.\n");
+    // Verificar si el destinatario contiene el símbolo '|'
+    if (contieneSimbolo(nuevoCorreo.destinatario)) {
+        printf("El destinatario no puede contener el símbolo '|'. Intente de nuevo.\n");
         return;
     }
 
-    printf("Mensaje: ");
-    getchar();  // Capturar el \n sobrante del scanf
+    // Solicitar el mensaje
+    printf("Escriba su mensaje: ");
+    getchar();  // Limpiar el buffer
     fgets(nuevoCorreo.mensaje, sizeof(nuevoCorreo.mensaje), stdin);
 
     // Eliminar el carácter de nueva línea (\n) al final del mensaje si existe
@@ -59,8 +75,14 @@ void enviarCorreo(const char *remitente) {
         nuevoCorreo.mensaje[len - 1] = '\0';  // Reemplazar \n con \0
     }
 
-    strcpy(nuevoCorreo.estado, "pendiente");
+    // Verificar si el mensaje contiene el símbolo '|'
+    if (contieneSimbolo(nuevoCorreo.mensaje)) {
+        printf("El mensaje no puede contener el símbolo '|'. Intente de nuevo.\n");
+        return;  // Salir de la función si el símbolo está presente
+    }
 
+    strcpy(nuevoCorreo.estado, "pendiente");
+    
     // Guardar el correo en el archivo
     FILE *archivo = fopen("correos.txt", "a");
     if (!archivo) {
@@ -68,7 +90,8 @@ void enviarCorreo(const char *remitente) {
         return;
     }
 
-    nuevoCorreo.id = ++contadorCorreos;  // Asigna un ID único
+    // Asignar un nuevo ID al correo
+    nuevoCorreo.id = ++contadorCorreos;
     fprintf(archivo, "%d|%s|%s|%s|%s\n", nuevoCorreo.id, nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
     fclose(archivo);
 
@@ -233,7 +256,20 @@ void responderCorreo(const char *usuario) {
     if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
         Correo respuesta;
         strcpy(respuesta.remitente, usuario);
+
+        // Verificar si el remitente contiene el símbolo '|'
+        if (contieneSimbolo(respuesta.remitente)) {
+            printf("El remitente no puede contener el símbolo '|'.\n");
+            return;
+        }
+
         strcpy(respuesta.destinatario, remitente);  // La respuesta va al remitente del correo original
+
+        // Verificar si el destinatario contiene el símbolo '|'
+        if (contieneSimbolo(respuesta.destinatario)) {
+            printf("El destinatario no puede contener el símbolo '|'. Intente de nuevo.\n");
+            return;
+        }
 
         printf("Escriba su respuesta: ");
         getchar();  // Para evitar problemas con el \n sobrante
@@ -243,6 +279,12 @@ void responderCorreo(const char *usuario) {
         size_t len = strlen(respuesta.mensaje);
         if (len > 0 && respuesta.mensaje[len - 1] == '\n') {
             respuesta.mensaje[len - 1] = '\0';  // Reemplazar \n con \0
+        }
+
+        // Verificar si el mensaje contiene el símbolo '|'
+        if (contieneSimbolo(respuesta.mensaje)) {
+            printf("El mensaje no puede contener el símbolo '|'. Intente de nuevo.\n");
+            return;
         }
 
         strcpy(respuesta.estado, "pendiente");
