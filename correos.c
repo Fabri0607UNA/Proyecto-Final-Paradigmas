@@ -42,11 +42,30 @@ int validarDestinatario(const char *destinatario) {
     return 0; // El destinatario no existe
 }
 
-void enviarCorreo(const char *usuario) {
+void enviarCorreo(const char *remitente) {
+
+    FILE *archivo1 = fopen("correos.txt", "r");
+    
+    if (!archivo1) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    char linea[MAX_LINEA], destinatario[50], remitente1[50], mensaje[256], estado[10];
+    int id;
+    int idAEliminar;
+
     Correo nuevoCorreo;
+
+    while (fgets(linea, sizeof(linea), archivo1)) {
+        sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente1, destinatario, mensaje, estado);
+
+    }
+
+    fclose(archivo1);
     
     // Verificar si el remitente es válido
-    strcpy(nuevoCorreo.remitente, usuario);
+    strcpy(nuevoCorreo.remitente, remitente);
 
     // Verificar si el remitente contiene el símbolo '|'
     if (contieneSimbolo(nuevoCorreo.remitente)) {
@@ -91,7 +110,7 @@ void enviarCorreo(const char *usuario) {
     }
 
     // Asignar un nuevo ID al correo
-    nuevoCorreo.id = ++contadorCorreos;
+    nuevoCorreo.id = id + 1;
     fprintf(archivo, "%d|%s|%s|%s|%s\n", nuevoCorreo.id, nuevoCorreo.remitente, nuevoCorreo.destinatario, nuevoCorreo.mensaje, nuevoCorreo.estado);
     fclose(archivo);
 
@@ -195,7 +214,21 @@ void eliminarCorreo(const char *usuario) {
     int id;
     int idAEliminar;
 
-    printf("Ingrese el ID del correo a eliminar: ");
+    // Mostrar correos del usuario antes de solicitar el ID a eliminar
+    printf("Correos de %s:\n", usuario);
+    while (fgets(linea, sizeof(linea), archivo)) {
+        sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+
+        // Mostrar solo los correos enviados o recibidos por el usuario
+        if (strcmp(destinatario, usuario) == 0) {
+            printf("ID: %d | De: %s | Para: %s | Mensaje: %s | Estado: %s\n", id, remitente, destinatario, mensaje, estado);
+        }
+    }
+
+    // Volver a abrir el archivo para leer desde el principio
+    rewind(archivo);
+
+    printf("\nIngrese el ID del correo que desea eliminar: ");
     scanf("%d", &idAEliminar);
 
     int correoEncontrado = 0; // Bandera para verificar si se encontró el correo a eliminar
@@ -227,6 +260,7 @@ void eliminarCorreo(const char *usuario) {
         printf("No se encontró el correo con el ID proporcionado o no tiene permiso para eliminarlo.\n");
     }
 }
+
 
 // Función para responder a un correo
 void responderCorreo(const char *usuario) {
@@ -287,6 +321,19 @@ void responderCorreo(const char *usuario) {
             return;
         }
 
+        FILE *archivoId = fopen("correos.txt", "r");
+        if (!archivoId) {
+            printf("No se pudo abrir el archivo para escribir.\n");
+            return;
+        }
+
+        while (fgets(linea, sizeof(linea), archivo)) {
+
+            sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+
+        }
+        fclose(archivoId);
+
         strcpy(respuesta.estado, "pendiente");
 
         // Guardar la respuesta en el archivo
@@ -297,7 +344,7 @@ void responderCorreo(const char *usuario) {
         }
 
         // Asignar un nuevo ID al correo, incrementando el contador global
-        respuesta.id = ++contadorCorreos;
+        respuesta.id = id + 1;
         fprintf(archivoRespuesta, "%d|%s|%s|%s|%s\n", respuesta.id, respuesta.remitente, respuesta.destinatario, respuesta.mensaje, respuesta.estado);
         fclose(archivoRespuesta);
 

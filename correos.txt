@@ -1,2 +1,4 @@
-1|fabricio@gmail.com|nahum@gmail.com|Hola|leido
-1|fabricio@gmail.com|ingold@gmail.com|Hola Ingold|leido
+1|nahum@gmail.com|fabricio@gmail.com|prueba|leido
+2|nahum@gmail.com|fabricio@gmail.com|prueba de la prueba|leido
+3|nahum@gmail.com|ingold@gmail.com|prueba1|pendiente
+4|fabricio@gmail.com|nahum@gmail.com|prueba potente|pendiente
