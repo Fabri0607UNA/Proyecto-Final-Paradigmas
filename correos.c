@@ -42,6 +42,40 @@ int validarDestinatario(const char *destinatario) {
     return 0; // El destinatario no existe
 }
 
+void listarUsuarios() {
+    FILE *archivo = fopen("usuarios.txt", "r");
+    
+    if (!archivo) {
+        printf("No se pudo abrir el archivo de usuarios.\n");
+        return;
+    }
+
+    char linea[MAX_LINEA];
+    char nombre[50], correo[50], contrasena[50];
+
+    printf("Correos de los usuarios disponibles:\n");
+    
+    // Leer el archivo línea por línea
+    while (fgets(linea, sizeof(linea), archivo)) {
+        // Verificar que la línea no esté vacía
+        if (strlen(linea) > 1) {
+            // Analizar cada línea en los campos nombre, correo y contraseña
+            int camposLeidos = sscanf(linea, "%49[^|]|%49[^|]|%49s", nombre, correo, contrasena);
+            
+            // Verificar que se hayan leído correctamente los tres campos
+            if (camposLeidos == 3) {
+                // Mostrar solo el correo de cada usuario
+                printf("%s\n", correo);
+            } else {
+                printf("Error al leer la línea: %s\n", linea);
+            }
+        }
+    }
+
+    fclose(archivo);
+}
+
+
 void enviarCorreo(const char *remitente) {
 
     FILE *archivo1 = fopen("correos.txt", "r");
@@ -52,14 +86,12 @@ void enviarCorreo(const char *remitente) {
     }
 
     char linea[MAX_LINEA], destinatario[50], remitente1[50], mensaje[256], estado[10];
-    int id;
-    int idAEliminar;
-
+    int id = 0;  // Inicializar el id
     Correo nuevoCorreo;
 
+    // Leer el archivo de correos para obtener el último ID usado
     while (fgets(linea, sizeof(linea), archivo1)) {
         sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente1, destinatario, mensaje, estado);
-
     }
 
     fclose(archivo1);
@@ -72,9 +104,13 @@ void enviarCorreo(const char *remitente) {
         printf("El remitente no puede contener el símbolo '|'.\n");
         return;
     }
-    
+
+    // Mostrar la lista de usuarios para que el remitente sepa a quién puede enviar correos
+    printf("\nUsuarios disponibles para enviar correos:\n");
+    listarUsuarios();  // Llama a la función que lista los correos de los usuarios
+
     // Solicitar el destinatario
-    printf("Ingrese el destinatario: ");
+    printf("\nIngrese el correo del destinatario: ");
     scanf("%s", nuevoCorreo.destinatario);
 
     // Verificar si el destinatario contiene el símbolo '|'
@@ -101,7 +137,7 @@ void enviarCorreo(const char *remitente) {
     }
 
     strcpy(nuevoCorreo.estado, "pendiente");
-    
+
     // Guardar el correo en el archivo
     FILE *archivo = fopen("correos.txt", "a");
     if (!archivo) {
@@ -273,7 +309,21 @@ void responderCorreo(const char *usuario) {
     int id, correoId;
     char linea[MAX_LINEA], remitente[50], destinatario[50], mensaje[256], estado[10];
 
-    printf("Ingrese el ID del correo que desea responder: ");
+    // Mostrar lista de correos del usuario antes de pedir el ID
+    printf("Correos de %s:\n", usuario);
+    while (fgets(linea, sizeof(linea), archivo)) {
+        sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+
+        // Mostrar solo los correos enviados o recibidos por el usuario
+        if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
+            printf("ID: %d | De: %s | Para: %s | Mensaje: %s | Estado: %s\n", id, remitente, destinatario, mensaje, estado);
+        }
+    }
+
+    // Volver al inicio del archivo para poder buscar el correo a responder
+    rewind(archivo);
+
+    printf("\nIngrese el ID del correo que desea responder: ");
     scanf("%d", &correoId);
 
     // Buscar el correo por ID
@@ -321,21 +371,6 @@ void responderCorreo(const char *usuario) {
             return;
         }
 
-        FILE *archivoId = fopen("correos.txt", "r");
-        if (!archivoId) {
-            printf("No se pudo abrir el archivo para escribir.\n");
-            return;
-        }
-
-        while (fgets(linea, sizeof(linea), archivo)) {
-
-            sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
-
-        }
-        fclose(archivoId);
-
-        strcpy(respuesta.estado, "pendiente");
-
         // Guardar la respuesta en el archivo
         FILE *archivoRespuesta = fopen("correos.txt", "a");
         if (!archivoRespuesta) {
@@ -343,8 +378,9 @@ void responderCorreo(const char *usuario) {
             return;
         }
 
-        // Asignar un nuevo ID al correo, incrementando el contador global
+        // Asignar un nuevo ID al correo, incrementando el ID del último correo
         respuesta.id = id + 1;
+        strcpy(respuesta.estado, "pendiente");
         fprintf(archivoRespuesta, "%d|%s|%s|%s|%s\n", respuesta.id, respuesta.remitente, respuesta.destinatario, respuesta.mensaje, respuesta.estado);
         fclose(archivoRespuesta);
 

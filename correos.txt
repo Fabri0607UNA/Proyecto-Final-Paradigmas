@@ -2,3 +2,5 @@
 2|nahum@gmail.com|fabricio@gmail.com|prueba de la prueba|leido
 3|nahum@gmail.com|ingold@gmail.com|prueba1|pendiente
 4|fabricio@gmail.com|nahum@gmail.com|prueba potente|pendiente
+5|fabricio@gmail.com|fabricio@gmail.com|d "/Users/nahum0320/Desktop/Paradigmas de Programación/Proyecto-Final-Paradigmas"|pendiente
+6|fabricio@gmail.com|fabricio@gmail.com|d "/Users/nahum0320/Desktop/Paradigmas de Programación/Proyecto-Final-Paradigmas/" && gcc *.c -o main && "/Users/nahum0320/Desktop/Paradigmas de Programación/Proyecto-Final-Paradigmas/"main|pendiente
