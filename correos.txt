@@ -1,6 +1,1 @@
-0|fabricio@gmail.com|nahum@gmail.com||
-1|nahum@gmail.com|fabricio@gmail.com|hola|leido
-2|nahum@gmail.com|fabricio@gmail.com|hola2|leido
-3|fabricio@gmail.com|nahum@gmail.com|hola, como esta?|pendiente
-4|fabricio@gmail.com|nahum@gmail.com|hola3|pendiente
-4|fabricio@gmail.com|fabricio@gmail.com|bien y usted?|pendiente
+

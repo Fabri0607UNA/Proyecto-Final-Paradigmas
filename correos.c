@@ -390,6 +390,20 @@ void responderCorreo(const char *usuario) {
             return;
         }
 
+        FILE *archivo1 = fopen("correos.txt", "r");
+    
+        if (!archivo1) {
+            printf("No se pudo abrir el archivo.\n");
+            return;
+        }
+
+        // Leer el archivo de correos para obtener el último ID usado
+        while (fgets(linea, sizeof(linea), archivo1)) {
+            sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+        }
+
+        fclose(archivo1);
+
         // Guardar la respuesta en el archivo
         FILE *archivoRespuesta = fopen("correos.txt", "a");
         if (!archivoRespuesta) {
