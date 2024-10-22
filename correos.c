@@ -10,14 +10,6 @@
 
 int contadorCorreos = 0;
 
-typedef struct {
-    int id;
-    char remitente[50];
-    char destinatario[50];
-    char mensaje[256];
-    char estado[10];
-} correo;
-
 bool contieneSimbolo(const char *mensaje) {
     return strchr(mensaje, '|') != NULL;
 }

@@ -23,7 +23,7 @@ int main() {
         if (scanf("%d", &opcionInicial) != 1) {
             printf("Entrada no válida. Por favor, ingrese un número.\n");
             while (getchar() != '\n'); // Limpiar el buffer de entrada
-            continue;
+            continue; //Sirve para saltar el resto del código dentro del bucle y pasar directamente a la siguiente iteración.
         }
 
         switch(opcionInicial) {
