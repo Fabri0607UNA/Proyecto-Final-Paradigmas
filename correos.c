@@ -105,6 +105,12 @@ void enviarCorreo(const char *remitente) {
     printf("\nIngrese el correo del destinatario: ");
     scanf("%s", nuevoCorreo.destinatario);
 
+    // Verificar si el destinatario existe
+    if (!validarDestinatario(nuevoCorreo.destinatario)) {
+        printf("El destinatario no existe. Intente de nuevo.\n");
+        return;
+    }
+
     // Verificar si el destinatario contiene el símbolo '|'
     if (contieneSimbolo(nuevoCorreo.destinatario)) {
         printf("El destinatario no puede contener el símbolo '|'. Intente de nuevo.\n");
