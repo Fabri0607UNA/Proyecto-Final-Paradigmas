@@ -162,6 +162,7 @@ void listarCorreos(const char *usuario) {
         return;
     }
     char linea[MAX_LINEA];
+    int listaCorreos = 0;
     
     printf("Correos de %s:\n", usuario);
     while (fgets(linea, sizeof(linea), archivo)) {
@@ -180,11 +181,18 @@ void listarCorreos(const char *usuario) {
                 // Calcular la posición del estado en la línea actual
                 fseek(archivo, posicion - strlen(linea) + strlen(linea) - strlen(estado) - 1, SEEK_SET);  // Mover el puntero al inicio del estado
                 fprintf(archivo, "leido");  // Sobrescribir el estado con "leido"
+                listaCorreos++;
                 fflush(archivo);  // Asegurarse de que los cambios se escriban en el archivo
             }
         }
+
     }
     fclose(archivo);
+    if (listaCorreos == 0) {
+        printf("No tiene correos no leídos.\n");
+    } else {
+        printf("Se actualizaron %d correos a estado 'leído'.\n", listaCorreos);
+    }
 }
 
 
@@ -249,6 +257,7 @@ void eliminarCorreo(const char *usuario) {
     char linea[MAX_LINEA], destinatario[50], remitente[50], mensaje[256], estado[10];
     int id;
     int idAEliminar;
+    int eliminarCorreo = 0;
 
     // Mostrar correos del usuario antes de solicitar el ID a eliminar
     printf("Correos de %s:\n", usuario);
@@ -258,43 +267,52 @@ void eliminarCorreo(const char *usuario) {
         // Mostrar solo los correos enviados o recibidos por el usuario
         if (strcmp(destinatario, usuario) == 0) {
             printf("ID: %d | De: %s | Para: %s | Mensaje: %s | Estado: %s\n", id, remitente, destinatario, mensaje, estado);
+            eliminarCorreo++;
         }
     }
 
-    // Volver a abrir el archivo para leer desde el principio
-    rewind(archivo);
+    if (eliminarCorreo == 0) {
+        printf("El usuario no tiene correos.\n");
+        return;
+    }else{
 
-    printf("\nIngrese el ID del correo que desea eliminar: ");
-    scanf("%d", &idAEliminar);
+         // Volver a abrir el archivo para leer desde el principio
+        rewind(archivo);
 
-    int correoEncontrado = 0; // Bandera para verificar si se encontró el correo a eliminar
+        printf("\nIngrese el ID del correo que desea eliminar: ");
+        scanf("%d", &idAEliminar);
 
-    // Leer línea por línea y verificar si corresponde al correo a eliminar
-    while (fgets(linea, sizeof(linea), archivo)) {
-        sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+        int correoEncontrado = 0; // Bandera para verificar si se encontró el correo a eliminar
 
-        // Copiar al archivo temporal solo si no coincide con el correo a eliminar
-        // y el destinatario es el usuario actual
-        if (id != idAEliminar || strcmp(destinatario, usuario) != 0) {
-            fprintf(tempArchivo, "%d|%s|%s|%s|%s\n", id, remitente, destinatario, mensaje, estado);
+        // Leer línea por línea y verificar si corresponde al correo a eliminar
+        while (fgets(linea, sizeof(linea), archivo)) {
+            sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
+
+            // Copiar al archivo temporal solo si no coincide con el correo a eliminar
+            // y el destinatario es el usuario actual
+            if (id != idAEliminar || strcmp(destinatario, usuario) != 0) {
+                fprintf(tempArchivo, "%d|%s|%s|%s|%s\n", id, remitente, destinatario, mensaje, estado);
+            } else {
+                correoEncontrado = 1;  // Se encontró y se omitirá en el nuevo archivo
+            }
+        }
+
+        fclose(archivo);
+        fclose(tempArchivo);
+
+        // Verificar si el correo se encontró y eliminó
+        if (correoEncontrado) {
+            remove("correos.txt");
+            rename("temp.txt", "correos.txt");
+            printf("Correo eliminado exitosamente.\n");
         } else {
-            correoEncontrado = 1;  // Se encontró y se omitirá en el nuevo archivo
+            // Si no se encontró el correo, eliminar el archivo temporal
+            remove("temp.txt");
+            printf("No se encontró el correo con el ID proporcionado o no tiene permiso para eliminarlo.\n");
         }
+            
     }
 
-    fclose(archivo);
-    fclose(tempArchivo);
-
-    // Verificar si el correo se encontró y eliminó
-    if (correoEncontrado) {
-        remove("correos.txt");
-        rename("temp.txt", "correos.txt");
-        printf("Correo eliminado exitosamente.\n");
-    } else {
-        // Si no se encontró el correo, eliminar el archivo temporal
-        remove("temp.txt");
-        printf("No se encontró el correo con el ID proporcionado o no tiene permiso para eliminarlo.\n");
-    }
 }
 
 
@@ -308,6 +326,7 @@ void responderCorreo(const char *usuario) {
 
     int id, correoId;
     char linea[MAX_LINEA], remitente[50], destinatario[50], mensaje[256], estado[10];
+    int responderCorreo = 0;
 
     // Mostrar lista de correos del usuario antes de pedir el ID
     printf("Correos de %s:\n", usuario);
