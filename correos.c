@@ -344,14 +344,22 @@ void responderCorreo(const char *usuario) {
     scanf("%d", &correoId);
 
     // Buscar el correo por ID
+    int correoEncontrado = 0; // Bandera para verificar si se encontró el correo
     while (fgets(linea, sizeof(linea), archivo)) {
         sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
 
         if (id == correoId) {
-            break;  // Correo encontrado
+            correoEncontrado = 1;  // Correo encontrado
+            break;
         }
     }
     fclose(archivo);
+
+    // Verificar si el correo fue encontrado
+    if (!correoEncontrado) {
+        printf("No se encontró el correo con el ID proporcionado.\n");
+        return;
+    }
 
     // Verificar si el correo fue dirigido o enviado por el usuario
     if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
