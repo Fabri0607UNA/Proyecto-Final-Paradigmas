@@ -325,6 +325,7 @@ void responderCorreo(const char *usuario) {
     int id, correoId;
     char linea[MAX_LINEA], remitente[50], destinatario[50], mensaje[256], estado[10];
     int responderCorreo = 0;
+    int correosDisponibles = 0;
 
     // Mostrar lista de correos del usuario antes de pedir el ID
     printf("Correos de %s:\n", usuario);
@@ -334,7 +335,15 @@ void responderCorreo(const char *usuario) {
         // Mostrar solo los correos enviados o recibidos por el usuario
         if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
             printf("ID: %d | De: %s | Para: %s | Mensaje: %s | Estado: %s\n", id, remitente, destinatario, mensaje, estado);
+            correosDisponibles++;
         }
+    }
+
+    // Verificar si el usuario tiene correos
+    if (correosDisponibles == 0) {
+        printf("El usuario no tiene correos.\n");
+        fclose(archivo);
+        return;
     }
 
     // Volver al inicio del archivo para poder buscar el correo a responder
