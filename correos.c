@@ -98,7 +98,6 @@ void enviarCorreo(const char *remitente) {
     }
 
     // Mostrar la lista de usuarios para que el remitente sepa a quién puede enviar correos
-    printf("\nUsuarios disponibles para enviar correos:\n");
     listarUsuarios();  // Llama a la función que lista los correos de los usuarios
 
     // Solicitar el destinatario
@@ -151,49 +150,55 @@ void enviarCorreo(const char *remitente) {
     printf("Correo enviado exitosamente.\n");
 }
 
-
-// Listar los correos de un usuario específico
+// Función para listar los correos de un usuario específico y actualizar los correos "pendiente" a "leído"
 void listarCorreos(const char *usuario) {
-    FILE *archivo = fopen("correos.txt", "r+");  // Abrir en modo lectura y escritura
-    if (!archivo) {
+    FILE *archivo = fopen("correos.txt", "r");
+    FILE *tempArchivo = fopen("temp.txt", "w+");  // Archivo temporal para actualizar los estados
+
+    if (!archivo || !tempArchivo) {
         printf("No se pudo abrir el archivo de correos.\n");
         return;
     }
-    char linea[MAX_LINEA];
-    int listaCorreos = 0;
-    
-    printf("Correos de %s:\n", usuario);
-    while (fgets(linea, sizeof(linea), archivo)) {
-        int id;
-        char remitente[50], destinatario[50], mensaje[256], estado[10];
-        long posicion = ftell(archivo);  // Guarda la posición actual
 
-        // Analiza la línea con sscanf, incluyendo el id al principio
+    char linea[MAX_LINEA];
+    int id;
+    char remitente[50], destinatario[50], mensaje[256], estado[10];
+    int listaCorreos = 0;
+
+    printf("Correos de %s:\n", usuario);
+
+    // Leer línea por línea y actualizar los estados de los correos pendientes
+    while (fgets(linea, sizeof(linea), archivo)) {
         sscanf(linea, "%d|%49[^|]|%49[^|]|%255[^|]|%9s", &id, remitente, destinatario, mensaje, estado);
 
+        // Mostrar el correo si el destinatario o remitente coincide con el usuario
         if (strcmp(destinatario, usuario) == 0 || strcmp(remitente, usuario) == 0) {
             printf("ID: %d | De: %s | Para: %s | Mensaje: %s | Estado: %s\n", id, remitente, destinatario, mensaje, estado);
-
-            // Si el estado es "no leido", cambiarlo a "leido"
-            if (strcmp(estado, "no leido") == 0) {
-                // Calcular la posición del estado en la línea actual
-                fseek(archivo, posicion - strlen(linea) + strlen(linea) - strlen(estado) - 1, SEEK_SET);  // Mover el puntero al inicio del estado
-                fprintf(archivo, "leido");  // Sobrescribir el estado con "leido"
-                listaCorreos++;
-                fflush(archivo);  // Asegurarse de que los cambios se escriban en el archivo
-            }
         }
 
+        // Verificar si el correo es para el usuario y está en estado "pendiente"
+        if (strcmp(destinatario, usuario) == 0 && strcmp(estado, "pendiente") == 0) {
+            strcpy(estado, "leido");  // Cambiar el estado a "leído"
+            listaCorreos++;
+        }
+
+        // Escribir en el archivo temporal con el estado actualizado, si es necesario
+        fprintf(tempArchivo, "%d|%s|%s|%s|%s\n", id, remitente, destinatario, mensaje, estado);
     }
+
     fclose(archivo);
+    fclose(tempArchivo);
+
+    // Reemplazar el archivo original con el archivo temporal actualizado
+    remove("correos.txt");
+    rename("temp.txt", "correos.txt");
+
     if (listaCorreos == 0) {
         printf("No tiene correos no leídos.\n");
     } else {
         printf("Se actualizaron %d correos a estado 'leído'.\n", listaCorreos);
     }
 }
-
-
 
 // Función para listar los correos no leídos de un usuario y actualizarlos como "leído"
 void listarCorreosNoLeidos(const char *usuario) {
